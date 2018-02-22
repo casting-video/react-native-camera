@@ -413,6 +413,9 @@ static NSDictionary *defaultFaceDetectorOptions = nil;
 
 - (void)stopRecording
 {
+    if (_playSounds) {
+        AudioServicesPlaySystemSound(1114);
+    }
     [self.movieFileOutput stopRecording];
 }
 
@@ -718,9 +721,6 @@ static NSDictionary *defaultFaceDetectorOptions = nil;
         if (value) {
             success = [value boolValue];
         }
-    }
-    if (success && _playSounds) {
-        AudioServicesPlaySystemSound(1114);
     }
     if (success && self.videoRecordedResolve != nil) {
         self.videoRecordedResolve(@{ @"uri": outputFileURL.absoluteString });
