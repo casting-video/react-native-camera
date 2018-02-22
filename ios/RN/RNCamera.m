@@ -18,6 +18,7 @@
 @property (nonatomic, strong) id faceDetectorManager;
 
 @property (nonatomic, copy) RCTDirectEventBlock onCameraReady;
+@property (nonatomic, copy) RCTDirectEventBlock onRecording;
 @property (nonatomic, copy) RCTDirectEventBlock onMountError;
 @property (nonatomic, copy) RCTDirectEventBlock onBarCodeRead;
 @property (nonatomic, copy) RCTDirectEventBlock onFacesDetected;
@@ -692,6 +693,13 @@ static NSDictionary *defaultFaceDetectorOptions = nil;
     if ([_session.outputs containsObject:_movieFileOutput]) {
         [_session removeOutput:_movieFileOutput];
         _movieFileOutput = nil;
+    }
+}
+
+- (void)captureOutput:(AVCaptureFileOutput *)captureOutput didStartRecordingToOutputFileAtURL:(NSURL *)outputFileURL fromConnections:(NSArray *)connections
+{
+    if (_onRecording) {
+        _onRecording(nil);
     }
 }
 

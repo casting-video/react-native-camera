@@ -45,6 +45,7 @@ type PropsType = ViewPropTypes & {
   focusDepth?: number,
   type?: number | string,
   onCameraReady?: Function,
+  onRecording?: Function,
   onBarCodeRead?: Function,
   faceDetectionMode?: number,
   flashMode?: number | string,
@@ -114,6 +115,7 @@ export default class Camera extends React.Component<PropsType> {
     focusDepth: PropTypes.number,
     onMountError: PropTypes.func,
     onCameraReady: PropTypes.func,
+    onRecording: PropTypes.func,
     onBarCodeRead: PropTypes.func,
     onFacesDetected: PropTypes.func,
     faceDetectionMode: PropTypes.number,
@@ -235,6 +237,12 @@ export default class Camera extends React.Component<PropsType> {
     }
   };
 
+  _onRecording = () => {
+    if (this.props.onRecording) {
+      this.props.onRecording();
+    }
+  }
+
   _onObjectDetected = (callback: ?Function) => ({ nativeEvent }: EventCallbackArgumentsType) => {
     const { type } = nativeEvent;
 
@@ -280,6 +288,7 @@ export default class Camera extends React.Component<PropsType> {
           ref={this._setReference}
           onMountError={this._onMountError}
           onCameraReady={this._onCameraReady}
+          onRecording={this._onRecording}
           onBarCodeRead={this._onObjectDetected(this.props.onBarCodeRead)}
           onFacesDetected={this._onObjectDetected(this.props.onFacesDetected)}
         />
@@ -330,6 +339,7 @@ const RNCamera = requireNativeComponent('RNCamera', Camera, {
     importantForAccessibility: true,
     onBarCodeRead: true,
     onCameraReady: true,
+    onRecording: true,
     onFaceDetected: true,
     onLayout: true,
     onMountError: true,

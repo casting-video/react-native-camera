@@ -232,6 +232,7 @@ public class CameraModule extends ReactContextBaseJavaModule {
                   if (cameraView.isCameraOpened()) {
                       CameraBackgroundHandler.post("record", () -> {
                           cameraView.record(options, promise, cacheDirectory);
+                          RNCameraViewHelper.emitRecordingEvent(cameraView);
                       });
                   } else {
                       promise.reject("E_CAMERA_UNAVAILABLE", "Camera is not running");

@@ -23,6 +23,7 @@ import org.reactnative.camera.events.CameraMountErrorEvent;
 import org.reactnative.camera.events.CameraReadyEvent;
 import org.reactnative.camera.events.FaceDetectionErrorEvent;
 import org.reactnative.camera.events.FacesDetectedEvent;
+import org.reactnative.camera.events.RecordingEvent;
 import org.reactnative.camera.utils.ImageDimensions;
 import org.reactnative.facedetector.RNFaceDetector;
 
@@ -175,6 +176,14 @@ public class RNCameraViewHelper {
 
   public static void emitCameraReadyEvent(ViewGroup view) {
     CameraReadyEvent event = CameraReadyEvent.obtain(view.getId());
+    ReactContext reactContext = (ReactContext) view.getContext();
+    reactContext.getNativeModule(UIManagerModule.class).getEventDispatcher().dispatchEvent(event);
+  }
+
+  // Recording event
+
+  public static void emitRecordingEvent(ViewGroup view) {
+    RecordingEvent event = RecordingEvent.obtain(view.getId());
     ReactContext reactContext = (ReactContext) view.getContext();
     reactContext.getNativeModule(UIManagerModule.class).getEventDispatcher().dispatchEvent(event);
   }
