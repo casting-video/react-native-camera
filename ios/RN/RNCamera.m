@@ -311,6 +311,10 @@ static NSDictionary *defaultFaceDetectorOptions = nil;
     [connection setVideoOrientation:[RNCameraUtils videoOrientationForDeviceOrientation:[[UIDevice currentDevice] orientation]]];
     [self.stillImageOutput captureStillImageAsynchronouslyFromConnection:connection completionHandler: ^(CMSampleBufferRef imageSampleBuffer, NSError *error) {
         if (imageSampleBuffer && !error) {
+            if (_playSounds) {
+                AudioServicesPlaySystemSound(1108);
+            }
+
             NSData *imageData = [AVCaptureStillImageOutput jpegStillImageNSDataRepresentation:imageSampleBuffer];
             
             UIImage *takenImage = [UIImage imageWithData:imageData];
@@ -701,6 +705,9 @@ static NSDictionary *defaultFaceDetectorOptions = nil;
     if (_onRecording) {
         _onRecording(nil);
     }
+    if (_playSounds) {
+        AudioServicesPlaySystemSound(1113);
+    }
 }
 
 - (void)captureOutput:(AVCaptureFileOutput *)captureOutput didFinishRecordingToOutputFileAtURL:(NSURL *)outputFileURL fromConnections:(NSArray *)connections error:(NSError *)error
@@ -711,6 +718,9 @@ static NSDictionary *defaultFaceDetectorOptions = nil;
         if (value) {
             success = [value boolValue];
         }
+    }
+    if (success && _playSounds) {
+        AudioServicesPlaySystemSound(1114);
     }
     if (success && self.videoRecordedResolve != nil) {
         self.videoRecordedResolve(@{ @"uri": outputFileURL.absoluteString });

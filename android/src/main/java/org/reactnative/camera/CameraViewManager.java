@@ -101,6 +101,11 @@ public class CameraViewManager extends ViewGroupManager<RNCameraView> {
     view.setWhiteBalance(whiteBalance);
   }
 
+  @ReactProp(name = "playSounds")
+  public void setPlaySounds(RNCameraView view, boolean playSounds) {
+    view.setPlaySounds(playSounds);
+  }
+
   @ReactProp(name = "barCodeTypes")
   public void setBarCodeTypes(RNCameraView view, ReadableArray barCodeTypes) {
     if (barCodeTypes == null) {

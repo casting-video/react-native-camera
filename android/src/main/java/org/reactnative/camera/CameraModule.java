@@ -1,6 +1,7 @@
 package org.reactnative.camera;
 
 import android.graphics.Bitmap;
+import android.media.MediaActionSound;
 import android.os.Build;
 
 import com.facebook.react.bridge.Arguments;
@@ -41,6 +42,8 @@ public class CameraModule extends ReactContextBaseJavaModule {
   static final int VIDEO_480P = 3;
   static final int VIDEO_4x3 = 4;
 
+  private MediaActionSound mMediaActionSound = new MediaActionSound();
+
   public static final Map<String, Object> VALID_BARCODE_TYPES =
       Collections.unmodifiableMap(new HashMap<String, Object>() {
         {
@@ -67,6 +70,10 @@ public class CameraModule extends ReactContextBaseJavaModule {
   public CameraModule(ReactApplicationContext reactContext) {
     super(reactContext);
     mScopedContext = new ScopedContext(reactContext);
+
+    mMediaActionSound.load(MediaActionSound.SHUTTER_CLICK);
+    mMediaActionSound.load(MediaActionSound.START_VIDEO_RECORDING);
+    mMediaActionSound.load(MediaActionSound.STOP_VIDEO_RECORDING);
   }
 
   public ScopedContext getScopedContext() {
@@ -198,6 +205,9 @@ public class CameraModule extends ReactContextBaseJavaModule {
               if (!Build.FINGERPRINT.contains("generic")) {
                 if (cameraView.isCameraOpened()) {
                   CameraBackgroundHandler.post("takePicture", () -> {
+                      if (cameraView.getPlaySounds())  {
+                          mMediaActionSound.play(MediaActionSound.SHUTTER_CLICK);
+                      }
                       cameraView.takePicture(options, promise, cacheDirectory);
                   });
                 } else {
@@ -233,6 +243,9 @@ public class CameraModule extends ReactContextBaseJavaModule {
                       CameraBackgroundHandler.post("record", () -> {
                           cameraView.record(options, promise, cacheDirectory);
                           RNCameraViewHelper.emitRecordingEvent(cameraView);
+                          if (cameraView.getPlaySounds())  {
+                              mMediaActionSound.play(MediaActionSound.START_VIDEO_RECORDING);
+                          }
                       });
                   } else {
                       promise.reject("E_CAMERA_UNAVAILABLE", "Camera is not running");
@@ -257,6 +270,9 @@ public class CameraModule extends ReactContextBaseJavaModule {
                   cameraView = (RNCameraView) nativeViewHierarchyManager.resolveView(viewTag);
                   if (cameraView.isCameraOpened()) {
                       CameraBackgroundHandler.post("stopRecording", () -> {
+                          if (cameraView.getPlaySounds())  {
+                              mMediaActionSound.play(MediaActionSound.STOP_VIDEO_RECORDING);
+                          }
                           cameraView.stopRecording();
                       });
                   }

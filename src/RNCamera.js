@@ -56,6 +56,7 @@ type PropsType = ViewPropTypes & {
   faceDetectionClassifications?: number,
   onFacesDetected?: ({ faces: Array<TrackedFaceFeature> }) => void,
   captureAudio?: boolean,
+  playSounds?: boolean,
 };
 
 const CameraManager: Object =
@@ -131,6 +132,7 @@ export default class Camera extends React.Component<PropsType> {
     notAuthorizedView: PropTypes.element,
     pendingAuthorizationView: PropTypes.element,
     captureAudio: PropTypes.bool,
+    playSounds: PropTypes.bool,
   };
 
   static defaultProps: Object = {
@@ -177,6 +179,7 @@ export default class Camera extends React.Component<PropsType> {
       </View>
     ),
     captureAudio: false,
+    playSounds: false,
   };
 
   _cameraRef: ?Object;
@@ -345,5 +348,6 @@ const RNCamera = requireNativeComponent('RNCamera', Camera, {
     onMountError: true,
     renderToHardwareTextureAndroid: true,
     testID: true,
+    playSounds: true,
   },
 });

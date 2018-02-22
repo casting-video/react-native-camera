@@ -132,6 +132,8 @@ RCT_CUSTOM_VIEW_PROPERTY(whiteBalance, NSInteger, RNCamera)
     [view updateWhiteBalance];
 }
 
+RCT_EXPORT_VIEW_PROPERTY(playSounds, BOOL);
+
 RCT_CUSTOM_VIEW_PROPERTY(faceDetectorEnabled, BOOL, RNCamera)
 {
     [view updateFaceDetecting:json];
