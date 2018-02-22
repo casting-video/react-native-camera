@@ -20,6 +20,8 @@ import org.reactnative.camera.tasks.ResolveTakenPictureAsyncTask;
 import org.reactnative.camera.utils.ScopedContext;
 import org.reactnative.facedetector.RNFaceDetector;
 
+import com.google.android.cameraview.CameraBackgroundHandler;
+
 import java.io.File;
 import java.nio.ByteBuffer;
 import java.util.Collections;
@@ -195,7 +197,9 @@ public class CameraModule extends ReactContextBaseJavaModule {
           try {
               if (!Build.FINGERPRINT.contains("generic")) {
                 if (cameraView.isCameraOpened()) {
-                  cameraView.takePicture(options, promise, cacheDirectory);
+                  CameraBackgroundHandler.post("takePicture", () -> {
+                      cameraView.takePicture(options, promise, cacheDirectory);
+                  });
                 } else {
                   promise.reject("E_CAMERA_UNAVAILABLE", "Camera is not running");
                 }
@@ -226,7 +230,9 @@ public class CameraModule extends ReactContextBaseJavaModule {
               try {
                   cameraView = (RNCameraView) nativeViewHierarchyManager.resolveView(viewTag);
                   if (cameraView.isCameraOpened()) {
-                      cameraView.record(options, promise, cacheDirectory);
+                      CameraBackgroundHandler.post("record", () -> {
+                          cameraView.record(options, promise, cacheDirectory);
+                      });
                   } else {
                       promise.reject("E_CAMERA_UNAVAILABLE", "Camera is not running");
                   }
@@ -249,7 +255,9 @@ public class CameraModule extends ReactContextBaseJavaModule {
               try {
                   cameraView = (RNCameraView) nativeViewHierarchyManager.resolveView(viewTag);
                   if (cameraView.isCameraOpened()) {
-                      cameraView.stopRecording();
+                      CameraBackgroundHandler.post("stopRecording", () -> {
+                          cameraView.stopRecording();
+                      });
                   }
               } catch (Exception e) {
                   e.printStackTrace();

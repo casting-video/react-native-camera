@@ -15,6 +15,7 @@ import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.uimanager.ThemedReactContext;
+import com.google.android.cameraview.CameraBackgroundHandler;
 import com.google.android.cameraview.CameraView;
 import com.google.android.gms.vision.face.Face;
 import com.google.zxing.BarcodeFormat;
@@ -294,7 +295,9 @@ public class RNCameraView extends CameraView implements LifecycleEventListener, 
         mIsPaused = false;
         mIsNew = false;
         if (!Build.FINGERPRINT.contains("generic")) {
-          start();
+          CameraBackgroundHandler.post("Camera start", () -> {
+            start();
+          });
         }
       }
     } else {
@@ -308,14 +311,18 @@ public class RNCameraView extends CameraView implements LifecycleEventListener, 
   public void onHostPause() {
     if (!mIsPaused && isCameraOpened()) {
       mIsPaused = true;
-      stop();
+      CameraBackgroundHandler.post("Camera stop", () -> {
+        stop();
+      });
     }
   }
 
   @Override
   public void onHostDestroy() {
     mFaceDetector.release();
-    stop();
+    CameraBackgroundHandler.post("Camera stop", () -> {
+      stop();
+    });
   }
 
   private boolean hasCameraPermissions() {

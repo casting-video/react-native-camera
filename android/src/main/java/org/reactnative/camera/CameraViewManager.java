@@ -8,6 +8,7 @@ import com.facebook.react.uimanager.ThemedReactContext;
 import com.facebook.react.uimanager.ViewGroupManager;
 import com.facebook.react.uimanager.annotations.ReactProp;
 import com.google.android.cameraview.AspectRatio;
+import com.google.android.cameraview.CameraBackgroundHandler;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -64,7 +65,9 @@ public class CameraViewManager extends ViewGroupManager<RNCameraView> {
 
   @ReactProp(name = "type")
   public void setType(RNCameraView view, int type) {
-    view.setFacing(type);
+    CameraBackgroundHandler.post("setFacing", () -> {
+      view.setFacing(type);
+    });
   }
 
   @ReactProp(name = "ratio")
