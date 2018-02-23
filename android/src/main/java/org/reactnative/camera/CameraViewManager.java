@@ -39,7 +39,9 @@ public class CameraViewManager extends ViewGroupManager<RNCameraView> {
 
   @Override
   public void onDropViewInstance(RNCameraView view) {
-    view.stop();
+    CameraBackgroundHandler.post("Camera stop", () -> {
+      view.stop();
+    });
     super.onDropViewInstance(view);
   }
 
