@@ -243,9 +243,6 @@ public class CameraModule extends ReactContextBaseJavaModule {
                       CameraBackgroundHandler.post("record", () -> {
                           cameraView.record(options, promise, cacheDirectory);
                           RNCameraViewHelper.emitRecordingEvent(cameraView);
-                          if (cameraView.getPlaySounds())  {
-                              mMediaActionSound.play(MediaActionSound.START_VIDEO_RECORDING);
-                          }
                       });
                   } else {
                       promise.reject("E_CAMERA_UNAVAILABLE", "Camera is not running");
@@ -270,9 +267,6 @@ public class CameraModule extends ReactContextBaseJavaModule {
                   cameraView = (RNCameraView) nativeViewHierarchyManager.resolveView(viewTag);
                   if (cameraView.isCameraOpened()) {
                       CameraBackgroundHandler.post("stopRecording", () -> {
-                          if (cameraView.getPlaySounds())  {
-                              mMediaActionSound.play(MediaActionSound.STOP_VIDEO_RECORDING);
-                          }
                           cameraView.stopRecording();
                       });
                   }
