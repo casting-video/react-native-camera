@@ -43,7 +43,6 @@ class BadInstagramCloneApp extends Component {
       </View>
     );
   }
-  }
 
   takePicture = async function() {
     if (this.camera) {
@@ -240,11 +239,19 @@ Takes a picture, saves in your app's cache directory and returns a promise.
 
 Supported options:
 
+ - `width` (integer). This property allows to specify the width that the returned image should have, image ratio will not be affected. If no value is specified the maximum image size is used (capture may take longer).
+
  - `quality` (float between 0 to 1.0). This property is used to compress the output jpeg file with 1 meaning no jpeg compression will be applied. If no value is specified `quality:1` is used.
 
  - `base64` (boolean true or false) Use this with `true` if you want a base64 representation of the picture taken on the return data of your promise. If no value is specified `base64:false` is used.
+ 
+ - `mirrorImage` (boolean true or false). Use this with `true` if you want the resulting rendered picture to be mirrored (inverted in the vertical axis). If no value is specified `mirrorImage:false` is used.
 
  - `exif` (boolean true or false) Use this with `true` if you want a exif data map of the picture taken on the return data of your promise. If no value is specified `exif:false` is used.
+ 
+ - `fixOrientation` (android only, boolean true or false) Use this with `true` if you want to fix incorrect image orientation (can take up to 5 seconds on some devices). Do not provide this if you only need EXIF based orientation.
+
+ - `forceUpOrientation` (iOS only, boolean true or false). This property allows to force portrait orientation based on actual data instead of exif data.
 
 The promise will be fulfilled with an object with some of the following properties:
 
@@ -277,8 +284,13 @@ The promise will be fulfilled with an object with some of the following properti
      - `ios` Specifies capture settings suitable for VGA quality (640x480 pixel) video output. (Same as RNCamera.Constants.VideoQuality.480p).
      - `android` Quality level corresponding to the 480p (720 x 480) resolution but with video frame width set to 640.
 
-  If nothing is passed the device's highest camera quality will be used as default.
-
+    If nothing is passed the device's highest camera quality will be used as default.
+ - `iOS` `codec`. This option specifies the codec of the output video. Setting the codec is only supported on `iOS >= 10`. The possible values are:
+   - `RNCamera.Constants.VideoCodec['H264']`
+   - `RNCamera.Constants.VideoCodec['JPEG']`
+   - `RNCamera.Constants.VideoCodec['HVEC']` (`iOS >= 11`)
+   - `RNCamera.Constants.VideoCodec['AppleProRes422']` (`iOS >= 11`)
+   - `RNCamera.Constants.VideoCodec['AppleProRes4444']` (`iOS >= 11`)
  - `maxDuration` (float greater than 0). Specifies the maximum duration of the video to be recorded in seconds. If nothing is specified, no time limit will be used.
 
  - `maxFileSize` (int greater than 0). Specifies the maximum file size, in bytes, of the video to be recorded. For 1mb, for example, use 1*1024*1024. If nothing is specified, no size limit will be used.
@@ -288,6 +300,8 @@ The promise will be fulfilled with an object with some of the following properti
  The promise will be fulfilled with an object with some of the following properties:
 
  - `uri`: returns the path to the video saved on your app's cache directory.
+
+ - `iOS` `codec`: the codec of the recorded video. One of `RNCamera.Constants.VideoCodec`
 
  #### `stopRecording: void`
 
