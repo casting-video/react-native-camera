@@ -24,7 +24,8 @@ import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.FrameLayout;
+
+import org.reactnative.camera.R;
 
 @TargetApi(14)
 class TextureViewPreview extends PreviewImpl {

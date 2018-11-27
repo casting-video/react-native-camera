@@ -20,7 +20,10 @@ import android.media.CamcorderProfile;
 import android.view.View;
 import android.graphics.SurfaceTexture;
 
+import com.facebook.react.bridge.ReadableMap;
+
 import java.util.Set;
+import java.util.SortedSet;
 
 abstract class CameraViewImpl {
 
@@ -51,6 +54,12 @@ abstract class CameraViewImpl {
     abstract int getFacing();
 
     abstract Set<AspectRatio> getSupportedAspectRatios();
+    
+    abstract SortedSet<Size> getAvailablePictureSizes(AspectRatio ratio);
+    
+    abstract void setPictureSize(Size size);
+    
+    abstract Size getPictureSize();
 
     /**
      * @return {@code true} if the aspect ratio was changed.
@@ -67,7 +76,7 @@ abstract class CameraViewImpl {
 
     abstract int getFlash();
 
-    abstract void takePicture();
+    abstract void takePicture(ReadableMap options);
 
     abstract boolean record(String path, int maxDuration, int maxFileSize,
                             boolean recordAudio, CamcorderProfile profile);
@@ -91,6 +100,10 @@ abstract class CameraViewImpl {
     abstract void setScanning(boolean isScanning);
 
     abstract boolean getScanning();
+    
+    abstract public void resumePreview();
+    
+    abstract public void pausePreview();
 
     abstract public void setPreviewTexture(SurfaceTexture surfaceTexture);
 

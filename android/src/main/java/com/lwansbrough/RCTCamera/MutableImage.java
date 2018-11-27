@@ -1,10 +1,9 @@
 package com.lwansbrough.RCTCamera;
 
-import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
-import android.media.ExifInterface;
+import android.support.media.ExifInterface;
 import android.util.Base64;
 import android.util.Log;
 
@@ -168,7 +167,7 @@ public class MutableImage {
     }
 
     public String toBase64(int jpegQualityPercent) {
-        return Base64.encodeToString(toJpeg(currentRepresentation, jpegQualityPercent), Base64.DEFAULT);
+        return Base64.encodeToString(toJpeg(currentRepresentation, jpegQualityPercent), Base64.NO_WRAP);
     }
 
     public void writeDataToFile(File file, ReadableMap options, int jpegQualityPercent) throws IOException {
@@ -190,14 +189,18 @@ public class MutableImage {
 
             // Add missing exif data from a sub directory
             ExifSubIFDDirectory directory = originalImageMetaData()
-                .getFirstDirectoryOfType(ExifSubIFDDirectory.class);
+               .getFirstDirectoryOfType(ExifSubIFDDirectory.class);
             for (Tag tag : directory.getTags()) {
                 int tagType = tag.getTagType();
                 // As some of exif data does not follow naming of the ExifInterface the names need
                 // to be transformed into Upper camel case format.
                 String tagName = tag.getTagName().replaceAll(" ", "");
                 Object object = directory.getObject(tagType);
-                exif.setAttribute(tagName, object.toString());
+                if (tagName.equals(ExifInterface.TAG_EXPOSURE_TIME)) {
+                    exif.setAttribute(tagName, convertExposureTimeToDoubleFormat(object.toString()));
+                } else {
+                    exif.setAttribute(tagName, object.toString());
+                }
             }
 
             writeLocationExifData(options, exif);
@@ -209,6 +212,18 @@ public class MutableImage {
         } catch (ImageProcessingException  | IOException e) {
             Log.e(TAG, "failed to save exif data", e);
         }
+    }
+
+    // Reformats exposure time value to match ExifInterface format. Example 1/11 -> 0.0909
+    // Even the value is formatted as double it is returned as a String because exif.setAttribute requires it.
+    private String convertExposureTimeToDoubleFormat(String exposureTime) {
+        if(!exposureTime.contains("/"))
+          return "";
+
+        String exposureFractions[]= exposureTime.split("/");
+        double divider = Double.parseDouble(exposureFractions[1]);
+        double exposureTimeAsDouble = 1.0f / divider;
+        return Double.toString(exposureTimeAsDouble);
     }
 
     private void rewriteOrientation(ExifInterface exif) {

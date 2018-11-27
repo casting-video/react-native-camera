@@ -25,6 +25,8 @@ import android.os.Build;
 import android.support.v4.util.SparseArrayCompat;
 import android.view.SurfaceHolder;
 
+import com.facebook.react.bridge.ReadableMap;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -77,8 +79,12 @@ class Camera1 extends CameraViewImpl implements MediaRecorder.OnInfoListener,
     private boolean mIsRecording;
 
     private final SizeMap mPreviewSizes = new SizeMap();
+                                                    
+    private boolean mIsPreviewActive = false;
 
     private final SizeMap mPictureSizes = new SizeMap();
+                                                    
+    private Size mPictureSize;
 
     private AspectRatio mAspectRatio;
 
@@ -107,6 +113,7 @@ class Camera1 extends CameraViewImpl implements MediaRecorder.OnInfoListener,
             public void onSurfaceChanged() {
                 if (mCamera != null) {
                     setUpPreview();
+                    mIsPreviewActive = false;
                     adjustCameraParameters();
                 }
             }
@@ -164,6 +171,7 @@ class Camera1 extends CameraViewImpl implements MediaRecorder.OnInfoListener,
                 final boolean needsToStopPreview = mShowingPreview && Build.VERSION.SDK_INT < 14;
                 if (needsToStopPreview) {
                     mCamera.stopPreview();
+                    mIsPreviewActive = false;
                 }
                 mCamera.setPreviewDisplay(mPreview.getSurfaceHolder());
                 if (needsToStopPreview) {
@@ -179,9 +187,21 @@ class Camera1 extends CameraViewImpl implements MediaRecorder.OnInfoListener,
 
     private void startCameraPreview() {
         mCamera.startPreview();
+        mIsPreviewActive = true;
         if (mIsScanning) {
             mCamera.setPreviewCallback(this);
         }
+    }
+                                                    
+    @Override
+    public void resumePreview() {
+        startCameraPreview();
+    }
+
+    @Override
+    public void pausePreview() {
+        mCamera.stopPreview();
+        mIsPreviewActive = false;
     }
 
     @Override
@@ -215,6 +235,36 @@ class Camera1 extends CameraViewImpl implements MediaRecorder.OnInfoListener,
             }
         }
         return idealAspectRatios.ratios();
+    }
+                                                    
+    @Override
+    SortedSet<Size> getAvailablePictureSizes(AspectRatio ratio) {
+        return mPictureSizes.sizes(ratio);
+    }
+    
+    @Override
+    void setPictureSize(Size size) {
+        if (size == null) {
+            if (mAspectRatio == null) {
+                return;
+            }
+          SortedSet<Size> sizes = mPictureSizes.sizes(mAspectRatio);
+          if(sizes != null && !sizes.isEmpty())
+          {
+            mPictureSize = sizes.last();
+          }
+        } else {
+          mPictureSize = size;
+        }
+        if (mCameraParameters != null && mCamera != null) {
+            mCameraParameters.setPictureSize(mPictureSize.getWidth(), mPictureSize.getHeight());
+            mCamera.setParameters(mCameraParameters);
+        }
+    }
+    
+    @Override
+    Size getPictureSize() {
+        return mPictureSize;
     }
 
     @Override
@@ -329,35 +379,46 @@ class Camera1 extends CameraViewImpl implements MediaRecorder.OnInfoListener,
     }
 
     @Override
-    void takePicture() {
+    void takePicture(final ReadableMap options) {
         if (!isCameraOpened()) {
             throw new IllegalStateException(
                     "Camera is not ready. Call start() before takePicture().");
+        }
+        if (!mIsPreviewActive) {
+            throw new IllegalStateException("Preview is paused - resume it before taking a picture.");
         }
         if (getAutoFocus()) {
             mCamera.cancelAutoFocus();
             mCamera.autoFocus(new Camera.AutoFocusCallback() {
                 @Override
                 public void onAutoFocus(boolean success, Camera camera) {
-                    takePictureInternal();
+                    takePictureInternal(options);
                 }
             });
         } else {
-            takePictureInternal();
+            takePictureInternal(options);
         }
     }
 
-    void takePictureInternal() {
+    void takePictureInternal(final ReadableMap options) {
         if (!isPictureCaptureInProgress.getAndSet(true)) {
             mCamera.takePicture(null, null, null, new Camera.PictureCallback() {
                 @Override
                 public void onPictureTaken(byte[] data, Camera camera) {
                     isPictureCaptureInProgress.set(false);
                     camera.cancelAutoFocus();
-                    camera.startPreview();
-                    if (mIsScanning) {
-                        camera.setPreviewCallback(Camera1.this);
+                    if (options.hasKey("pauseAfterCapture") && !options.getBoolean("pauseAfterCapture")) {
+                        camera.startPreview();
+                        mIsPreviewActive = true;
+                        if (mIsScanning) {
+                            camera.setPreviewCallback(Camera1.this);
+                        }
+                    }else{
+                        camera.stopPreview();
+                        mIsPreviewActive = false;
+                        camera.setPreviewCallback(null);
                     }
+
                     mCallback.onPictureTaken(data);
                 }
             });
@@ -403,6 +464,7 @@ class Camera1 extends CameraViewImpl implements MediaRecorder.OnInfoListener,
             final boolean needsToStopPreview = mShowingPreview && Build.VERSION.SDK_INT < 14;
             if (needsToStopPreview) {
                 mCamera.stopPreview();
+                mIsPreviewActive = false;
             }
             mCamera.setDisplayOrientation(calcDisplayOrientation(displayOrientation));
             if (needsToStopPreview) {
@@ -420,6 +482,7 @@ class Camera1 extends CameraViewImpl implements MediaRecorder.OnInfoListener,
             }
 
             mCamera.stopPreview();
+            mIsPreviewActive = false;
 
             if (surfaceTexture == null) {
                 mCamera.setPreviewTexture((SurfaceTexture) mPreview.getSurfaceTexture());
@@ -504,13 +567,15 @@ class Camera1 extends CameraViewImpl implements MediaRecorder.OnInfoListener,
         Size size = chooseOptimalSize(sizes);
 
         // Always re-apply camera parameters
-        // Largest picture size in this ratio
-        final Size pictureSize = mPictureSizes.sizes(mAspectRatio).last();
+        if (mPictureSize == null) {
+            mPictureSize = mPictureSizes.sizes(mAspectRatio).last();
+        }
         if (mShowingPreview) {
             mCamera.stopPreview();
+            mIsPreviewActive = false;
         }
         mCameraParameters.setPreviewSize(size.getWidth(), size.getHeight());
-        mCameraParameters.setPictureSize(pictureSize.getWidth(), pictureSize.getHeight());
+        mCameraParameters.setPictureSize(mPictureSize.getWidth(), mPictureSize.getHeight());
         mCameraParameters.setRotation(calcCameraRotation(mDisplayOrientation));
         setAutoFocusInternal(mAutoFocus);
         setFlashInternal(mFlash);
@@ -555,6 +620,7 @@ class Camera1 extends CameraViewImpl implements MediaRecorder.OnInfoListener,
         if (mCamera != null) {
             mCamera.release();
             mCamera = null;
+            mPictureSize = null;
             mCallback.onCameraClosed();
         }
     }
@@ -736,7 +802,7 @@ class Camera1 extends CameraViewImpl implements MediaRecorder.OnInfoListener,
             setCamcorderProfile(CamcorderProfile.get(mCameraId, CamcorderProfile.QUALITY_HIGH), recordAudio);
         }
 
-        mMediaRecorder.setOrientationHint(calcDisplayOrientation(mDisplayOrientation));
+        mMediaRecorder.setOrientationHint(calcCameraRotation(mDisplayOrientation));
 
         if (maxDuration != -1) {
             mMediaRecorder.setMaxDuration(maxDuration);

@@ -1,7 +1,6 @@
 package org.reactnative.camera;
 
 import android.support.annotation.Nullable;
-
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.common.MapBuilder;
 import com.facebook.react.uimanager.ThemedReactContext;
@@ -9,6 +8,7 @@ import com.facebook.react.uimanager.ViewGroupManager;
 import com.facebook.react.uimanager.annotations.ReactProp;
 import com.google.android.cameraview.AspectRatio;
 import com.google.android.cameraview.CameraBackgroundHandler;
+import com.google.android.cameraview.Size;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,7 +21,12 @@ public class CameraViewManager extends ViewGroupManager<RNCameraView> {
     EVENT_ON_MOUNT_ERROR("onMountError"),
     EVENT_ON_BAR_CODE_READ("onBarCodeRead"),
     EVENT_ON_FACES_DETECTED("onFacesDetected"),
-    EVENT_ON_FACE_DETECTION_ERROR("onFaceDetectionError");
+    EVENT_ON_BARCODES_DETECTED("onGoogleVisionBarcodesDetected"),
+    EVENT_ON_FACE_DETECTION_ERROR("onFaceDetectionError"),
+    EVENT_ON_BARCODE_DETECTION_ERROR("onGoogleVisionBarcodeDetectionError"),
+    EVENT_ON_TEXT_RECOGNIZED("onTextRecognized"),
+    EVENT_ON_PICTURE_TAKEN("onPictureTaken"),
+    EVENT_ON_PICTURE_SAVED("onPictureSaved");
 
     private final String mName;
 
@@ -106,6 +111,10 @@ public class CameraViewManager extends ViewGroupManager<RNCameraView> {
   @ReactProp(name = "playSounds")
   public void setPlaySounds(RNCameraView view, boolean playSounds) {
     view.setPlaySounds(playSounds);
+
+  @ReactProp(name = "pictureSize")
+  public void setPictureSize(RNCameraView view, String size) {
+    view.setPictureSize(size.equals("None") ? null : Size.parse(size));
   }
 
   @ReactProp(name = "barCodeTypes")
@@ -130,6 +139,11 @@ public class CameraViewManager extends ViewGroupManager<RNCameraView> {
     view.setUsingCamera2Api(useCamera2Api);
   }
 
+  @ReactProp(name = "playSoundOnCapture")
+  public void setPlaySoundOnCapture(RNCameraView view, boolean playSoundOnCapture) {
+    view.setPlaySoundOnCapture(playSoundOnCapture);
+  }
+
   @ReactProp(name = "faceDetectorEnabled")
   public void setFaceDetecting(RNCameraView view, boolean faceDetectorEnabled) {
     view.setShouldDetectFaces(faceDetectorEnabled);
@@ -148,5 +162,25 @@ public class CameraViewManager extends ViewGroupManager<RNCameraView> {
   @ReactProp(name = "faceDetectionClassifications")
   public void setFaceDetectionClassifications(RNCameraView view, int classifications) {
     view.setFaceDetectionClassifications(classifications);
+  }
+
+  @ReactProp(name = "googleVisionBarcodeDetectorEnabled")
+  public void setGoogleVisionBarcodeDetecting(RNCameraView view, boolean googleBarcodeDetectorEnabled) {
+    view.setShouldGoogleDetectBarcodes(googleBarcodeDetectorEnabled);
+  }
+
+  @ReactProp(name = "googleVisionBarcodeType")
+  public void setGoogleVisionBarcodeType(RNCameraView view, int barcodeType) {
+    view.setGoogleVisionBarcodeType(barcodeType);
+  }
+
+  @ReactProp(name = "googleVisionBarcodeMode")
+  public void setGoogleVisionBarcodeMode(RNCameraView view, int barcodeMode) {
+    view.setGoogleVisionBarcodeMode(barcodeMode);
+  }
+
+  @ReactProp(name = "textRecognizerEnabled")
+  public void setTextRecognizing(RNCameraView view, boolean textRecognizerEnabled) {
+    view.setShouldRecognizeText(textRecognizerEnabled);
   }
 }
