@@ -4,33 +4,40 @@ import android.support.v4.util.Pools;
 
 import org.reactnative.camera.CameraViewManager;
 import com.facebook.react.bridge.Arguments;
+import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.uimanager.events.Event;
 import com.facebook.react.uimanager.events.RCTEventEmitter;
 import com.google.zxing.Result;
+import com.google.zxing.ResultPoint;
 
 import java.util.Date;
+import java.util.Formatter;
 
 public class BarCodeReadEvent extends Event<BarCodeReadEvent> {
   private static final Pools.SynchronizedPool<BarCodeReadEvent> EVENTS_POOL =
       new Pools.SynchronizedPool<>(3);
 
   private Result mBarCode;
+  private int mWidth;
+  private int mHeight;
 
   private BarCodeReadEvent() {}
 
-  public static BarCodeReadEvent obtain(int viewTag, Result barCode) {
+  public static BarCodeReadEvent obtain(int viewTag, Result barCode, int width, int height) {
     BarCodeReadEvent event = EVENTS_POOL.acquire();
     if (event == null) {
       event = new BarCodeReadEvent();
     }
-    event.init(viewTag, barCode);
+    event.init(viewTag, barCode, width, height);
     return event;
   }
 
-  private void init(int viewTag, Result barCode) {
+  private void init(int viewTag, Result barCode, int width, int height) {
     super.init(viewTag);
     mBarCode = barCode;
+    mWidth = width;
+    mHeight = height;
   }
 
   /**
@@ -58,11 +65,37 @@ public class BarCodeReadEvent extends Event<BarCodeReadEvent> {
 
   private WritableMap serializeEventData() {
     WritableMap event = Arguments.createMap();
+    WritableMap eventOrigin = Arguments.createMap();
 
     event.putInt("target", getViewTag());
     event.putString("data", mBarCode.getText());
-    event.putString("type", mBarCode.getBarcodeFormat().toString());
 
+    byte[] rawBytes = mBarCode.getRawBytes();
+    if (rawBytes != null && rawBytes.length > 0) {
+      Formatter formatter = new Formatter();
+      for (byte b : rawBytes) {
+        formatter.format("%02x", b);
+      }
+      event.putString("rawData", formatter.toString());
+      formatter.close();
+    } 
+
+    event.putString("type", mBarCode.getBarcodeFormat().toString());
+    WritableArray resultPoints = Arguments.createArray();
+    ResultPoint[] points = mBarCode.getResultPoints();
+    for (ResultPoint point: points) {
+      if(point!=null) {
+        WritableMap newPoint = Arguments.createMap();
+        newPoint.putString("x", String.valueOf(point.getX()));
+        newPoint.putString("y", String.valueOf(point.getY()));
+        resultPoints.pushMap(newPoint);
+      }
+    }
+
+    eventOrigin.putArray("origin", resultPoints);
+    eventOrigin.putInt("height", mHeight);
+    eventOrigin.putInt("width", mWidth);
+    event.putMap("bounds", eventOrigin);
     return event;
   }
 }

@@ -10,67 +10,73 @@ All you need is to `import` `Camera` from the `react-native-camera` module and t
 ```javascript
 'use strict';
 import React, { Component } from 'react';
-import {
-AppRegistry,
-Dimensions,
-StyleSheet,
-Text,
-TouchableHighlight,
-View
-} from 'react-native';
+import { AppRegistry, Dimensions, StyleSheet, Text, TouchableHighlight, View } from 'react-native';
 import Camera from 'react-native-camera';
 
 class BadInstagramCloneApp extends Component {
-render() {
-return (
-<View style={styles.container}>
-<Camera
-ref={(cam) => {
-this.camera = cam;
-}}
-onBarCodeRead={this.onBarCodeRead.bind(this)}
-style={styles.preview}
-aspect={Camera.constants.Aspect.fill}>
-<Text style={styles.capture} onPress={this.takePicture.bind(this)}>[CAPTURE]</Text>
-</Camera>
-</View>
-);
-}
+  _requestPermissions = async () => {
+    if (Platform.OS === 'android') { 
+      const result = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.CAMERA)
+      return result === PermissionsAndroid.RESULTS.GRANTED || result === true
+    }
+    return true
+  }
 
-onBarCodeRead(e) {
-console.log(
-"Barcode Found!",
-"Type: " + e.type + "\nData: " + e.data
-);
-}
+  _takePicture = async () => {
+    if (this.camera) {
+      const options = { quality: 0.5, base64: true }
+      const data = await this.camera.takePictureAsync(options)
+      console.log(data.uri)
+    }
+  }
+  
+  _onBarCodeRead = (e) => {
+    console.log(`Barcode Found! Type: ${e.type}\nData: ${e.data}`)
+  }
 
-takePicture() {
-const options = {};
-//options.location = ...
-this.camera.capture({metadata: options})
-.then((data) => console.log(data))
-.catch(err => console.error(err));
-}
+  componentDidMount = () => {
+    ({ _, status }) => {
+      if (status !== 'PERMISSION_GRANTED') {
+        this._requestPermissions()
+      }
+    }
+  }
+
+  render() {
+    return (
+      <View style={styles.container}>
+        <Camera
+          ref={(ref) => {
+            this.camera = ref;
+          }}
+          onBarCodeRead={(e) => this._onBarCodeRead(e)}
+          style={styles.preview}>
+        <Text style={styles.capture} onPress={() => this._takePicture()}>[CAPTURE]</Text>
+      </Camera>
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
-container: {
-flex: 1,
-flexDirection: 'row',
-},
-preview: {
-flex: 1,
-justifyContent: 'flex-end',
-alignItems: 'center'
-},
-capture: {
-flex: 0,
-backgroundColor: '#fff',
-borderRadius: 5,
-color: '#000',
-padding: 10,
-margin: 40
-}
+  container: {
+    flex: 1,
+    flexDirection: 'column',
+    backgroundColor: 'black'
+  },
+  preview: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    alignItems: 'center'
+  },
+  capture: {
+    flex: 0,
+    backgroundColor: '#fff',
+    borderRadius: 5,
+    padding: 15,
+    paddingHorizontal: 20,
+    alignSelf: 'center',
+    margin: 20
+  }
 });
 
 AppRegistry.registerComponent('BadInstagramCloneApp', () => BadInstagramCloneApp);
@@ -256,6 +262,10 @@ By default a <ActivityIndicator> will be displayed while the component is waitin
 
 If set to `true`, the image returned will be mirrored.
 
+#### `mirrorVideo`
+
+If set to `true`, the video returned will be mirrored.
+
 #### `fixOrientation` (_deprecated_)
 
 If set to `true`, the image returned will be rotated to the _right way up_.  WARNING: It uses a significant amount of memory and my cause your application to crash if the device cannot provide enough RAM to perform the rotation.
@@ -278,7 +288,7 @@ Supported options:
 - `mode` (See  `captureMode` under Properties)
 - `target` (See `captureTarget` under Properties)
 - `metadata` This is metadata to be added to the captured image.
-- `location` This is the object returned from `navigator.geolocation.getCurrentPosition()` (React Native's geolocation polyfill). It will add GPS metadata to the image.
+- `metadata.location` This is the object returned from `navigator.geolocation.getCurrentPosition()` (React Native's geolocation polyfill). It will add GPS metadata to the image.
 - `rotation` This will rotate the image by the number of degrees specified.
 - `jpegQuality` (integer between 1 and 100) This property is used to compress the output jpeg file with 100% meaning no jpeg compression will be applied.
 - `totalSeconds` This will limit video length by number of seconds specified. Only works in video capture mode.
