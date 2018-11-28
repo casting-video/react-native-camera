@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
+import java.nio.ByteBuffer;
 
 public class CameraModule extends ReactContextBaseJavaModule {
   private static final String TAG = "CameraModule";
@@ -258,22 +259,15 @@ public class CameraModule extends ReactContextBaseJavaModule {
       public void execute(NativeViewHierarchyManager nativeViewHierarchyManager) {
           RNCameraView cameraView = (RNCameraView) nativeViewHierarchyManager.resolveView(viewTag);
           try {
-              if (!Build.FINGERPRINT.contains("generic")) {
-                if (cameraView.isCameraOpened()) {
-                  CameraBackgroundHandler.post("takePicture", () -> {
-                      if (cameraView.getPlaySounds())  {
-                          mMediaActionSound.play(MediaActionSound.SHUTTER_CLICK);
-                      }
-                      cameraView.takePicture(options, promise, cacheDirectory);
-                  });
-                } else {
-                  promise.reject("E_CAMERA_UNAVAILABLE", "Camera is not running");
-                }
+              if (cameraView.isCameraOpened()) {
+                CameraBackgroundHandler.post("takePicture", () -> {
+                    if (cameraView.getPlaySounds())  {
+                        mMediaActionSound.play(MediaActionSound.SHUTTER_CLICK);
+                    }
+                    cameraView.takePicture(options, promise, cacheDirectory);
+                });
               } else {
-                  Bitmap image = RNCameraViewHelper.generateSimulatorPhoto(cameraView.getWidth(), cameraView.getHeight());
-                  ByteBuffer byteBuffer = ByteBuffer.allocate(image.getRowBytes() * image.getHeight());
-                  image.copyPixelsToBuffer(byteBuffer);
-                  new ResolveTakenPictureAsyncTask(byteBuffer.array(), promise, options).execute();
+                promise.reject("E_CAMERA_UNAVAILABLE", "Camera is not running");
               }
         } catch (Exception e) {
           promise.reject("E_CAMERA_BAD_VIEWTAG", "takePictureAsync: Expected a Camera component");
