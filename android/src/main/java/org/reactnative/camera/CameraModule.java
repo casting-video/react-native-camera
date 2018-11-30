@@ -261,9 +261,6 @@ public class CameraModule extends ReactContextBaseJavaModule {
           try {
               if (cameraView.isCameraOpened()) {
                 CameraBackgroundHandler.post("takePicture", () -> {
-                    if (cameraView.getPlaySounds())  {
-                        mMediaActionSound.play(MediaActionSound.SHUTTER_CLICK);
-                    }
                     cameraView.takePicture(options, promise, cacheDirectory);
                 });
               } else {

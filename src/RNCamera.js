@@ -101,7 +101,6 @@ type PropsType = typeof View.props & {
   onFacesDetected?: ({ faces: Array<TrackedFaceFeature> }) => void,
   onTextRecognized?: ({ textBlocks: Array<TrackedTextFeature> }) => void,
   captureAudio?: boolean,
-  playSounds?: boolean,
   playSoundOnCapture?: boolean,
   videoStabilizationMode?: number | string,
   pictureSize?: string,
@@ -209,7 +208,6 @@ export default class Camera extends React.Component<PropsType, StateType> {
     notAuthorizedView: PropTypes.element,
     pendingAuthorizationView: PropTypes.element,
     captureAudio: PropTypes.bool,
-    playSounds: PropTypes.bool,
     playSoundOnCapture: PropTypes.bool,
     videoStabilizationMode: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     pictureSize: PropTypes.string,
@@ -246,7 +244,6 @@ export default class Camera extends React.Component<PropsType, StateType> {
       </View>
     ),
     captureAudio: false,
-    playSounds: false,
     playSoundOnCapture: false,
     pictureSize: 'None',
     videoStabilizationMode: 0,
@@ -501,6 +498,5 @@ const RNCamera = requireNativeComponent('RNCamera', Camera, {
     onMountError: true,
     renderToHardwareTextureAndroid: true,
     testID: true,
-    playSounds: true,
   },
 });

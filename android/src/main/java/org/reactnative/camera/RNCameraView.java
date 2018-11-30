@@ -47,7 +47,6 @@ public class RNCameraView extends CameraView implements LifecycleEventListener, 
 
   private boolean mIsPaused = false;
   private boolean mIsNew = true;
-  private boolean mPlaySounds = false;
   private boolean invertImageData = false;
 
   // Concurrency lock for scanners to avoid flooding the runtime
@@ -368,13 +367,6 @@ public class RNCameraView extends CameraView implements LifecycleEventListener, 
     setScanning(mShouldDetectFaces || mShouldGoogleDetectBarcodes || mShouldScanBarCodes || mShouldRecognizeText);
   }
 
-  public void setPlaySounds(boolean playSounds) {
-    mPlaySounds = playSounds;
-  }
-
-  public boolean getPlaySounds() {
-    return mPlaySounds;
-  }
   public void onFacesDetected(SparseArray<Face> facesReported, int sourceWidth, int sourceHeight, int sourceRotation) {
     if (!mShouldDetectFaces) {
       return;

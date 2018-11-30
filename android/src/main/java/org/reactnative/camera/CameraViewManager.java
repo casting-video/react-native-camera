@@ -108,11 +108,6 @@ public class CameraViewManager extends ViewGroupManager<RNCameraView> {
     view.setWhiteBalance(whiteBalance);
   }
 
-  @ReactProp(name = "playSounds")
-  public void setPlaySounds(RNCameraView view, boolean playSounds) {
-    view.setPlaySounds(playSounds);
-  }
-
   @ReactProp(name = "pictureSize")
   public void setPictureSize(RNCameraView view, String size) {
     view.setPictureSize(size.equals("None") ? null : Size.parse(size));
