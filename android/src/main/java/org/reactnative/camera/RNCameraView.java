@@ -94,8 +94,8 @@ public class RNCameraView extends CameraView implements LifecycleEventListener, 
             promise.resolve(null);
         }
         final File cacheDirectory = mPictureTakenDirectories.remove(promise);
-          new ResolveTakenPictureAsyncTask(data, promise, options, cacheDirectory, RNCameraView.this)
-                  .executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        new ResolveTakenPictureAsyncTask(data, promise, options, cacheDirectory, RNCameraView.this)
+                .executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
         RNCameraViewHelper.emitPictureTakenEvent(cameraView);
       }
 
@@ -402,7 +402,7 @@ public class RNCameraView extends CameraView implements LifecycleEventListener, 
   /**
    * Initial setup of the text recongizer
    */
-  private void setupTextRecongnizer() {
+  private void setupTextRecognizer() {
     mTextRecognizer = new TextRecognizer.Builder(mThemedReactContext).build();
   }
 
@@ -442,7 +442,7 @@ public class RNCameraView extends CameraView implements LifecycleEventListener, 
 
   public void setShouldRecognizeText(boolean shouldRecognizeText) {
     if (shouldRecognizeText && mTextRecognizer == null) {
-      setupTextRecongnizer();
+      setupTextRecognizer();
     }
     this.mShouldRecognizeText = shouldRecognizeText;
     setScanning(mShouldDetectFaces || mShouldGoogleDetectBarcodes || mShouldScanBarCodes || mShouldRecognizeText);
