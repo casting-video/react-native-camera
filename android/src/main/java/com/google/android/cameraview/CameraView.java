@@ -86,16 +86,16 @@ public class CameraView extends FrameLayout {
 
     private final DisplayOrientationDetector mDisplayOrientationDetector;
 
-    public CameraView(Context context, boolean fallbackToOldApi) {
-        this(context, null, fallbackToOldApi);
+    public CameraView(Context context) {
+        this(context, null);
     }
 
-    public CameraView(Context context, AttributeSet attrs, boolean fallbackToOldApi) {
-        this(context, attrs, 0, fallbackToOldApi);
+    public CameraView(Context context, AttributeSet attrs) {
+        this(context, attrs, 0);
     }
 
     @SuppressWarnings("WrongConstant")
-    public CameraView(Context context, AttributeSet attrs, int defStyleAttr, boolean fallbackToOldApi) {
+    public CameraView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         if (isInEditMode()){
             mCallbacks = null;
@@ -108,9 +108,7 @@ public class CameraView extends FrameLayout {
         // Internal setup
         final PreviewImpl preview = createPreviewImpl(context);
         mCallbacks = new CallbackBridge();
-        if (fallbackToOldApi || Build.VERSION.SDK_INT < 21) {
-            mImpl = new Camera1(mCallbacks, preview);
-        } else if (Build.VERSION.SDK_INT < 23) {
+        if (Build.VERSION.SDK_INT < 23) {
             mImpl = new Camera2(mCallbacks, preview, context);
         } else {
             mImpl = new Camera2Api23(mCallbacks, preview, context);
@@ -127,13 +125,7 @@ public class CameraView extends FrameLayout {
 
     @NonNull
     private PreviewImpl createPreviewImpl(Context context) {
-        PreviewImpl preview;
-        if (Build.VERSION.SDK_INT < 14) {
-            preview = new SurfaceViewPreview(context, this);
-        } else {
-            preview = new TextureViewPreview(context, this);
-        }
-        return preview;
+        return new TextureViewPreview(context, this);
     }
 
     @Override
@@ -246,52 +238,12 @@ public class CameraView extends FrameLayout {
         setPictureSize(ss.pictureSize);
     }
 
-    public void setUsingCamera2Api(boolean useCamera2) {
-        if (Build.VERSION.SDK_INT < 21) {
-            return;
-        }
-
-        boolean wasOpened = isCameraOpened();
-        Parcelable state = onSaveInstanceState();
-
-        if (useCamera2) {
-            if (wasOpened) {
-                stop();
-            }
-            if (Build.VERSION.SDK_INT < 23) {
-                mImpl = new Camera2(mCallbacks, mImpl.mPreview, mContext);
-            } else {
-                mImpl = new Camera2Api23(mCallbacks, mImpl.mPreview, mContext);
-            }
-        } else {
-            if (mImpl instanceof Camera1) {
-                return;
-            }
-
-            if (wasOpened) {
-                stop();
-            }
-            mImpl = new Camera1(mCallbacks, mImpl.mPreview);
-        }
-        start();
-    }
-
     /**
      * Open a camera device and start showing camera preview. This is typically called from
      * {@link Activity#onResume()}.
      */
     public void start() {
-        if (!mImpl.start()) {
-            if (mImpl.getView() != null) {
-                this.removeView(mImpl.getView());
-            }
-            //store the state and restore this state after fall back to Camera1
-            Parcelable state=onSaveInstanceState();
-            // Camera2 uses legacy hardware layer; fall back to Camera1
-            mImpl = new Camera1(mCallbacks, createPreviewImpl(getContext()));
-            onRestoreInstanceState(state);
-            mImpl.start();
-        }
+        mImpl.start();
     }
 
     /**

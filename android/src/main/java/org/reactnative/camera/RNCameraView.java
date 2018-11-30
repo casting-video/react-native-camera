@@ -72,7 +72,7 @@ public class RNCameraView extends CameraView implements LifecycleEventListener, 
   private int mGoogleVisionBarCodeMode = RNBarcodeDetector.NORMAL_MODE;
 
   public RNCameraView(ThemedReactContext themedReactContext) {
-    super(themedReactContext, true);
+    super(themedReactContext);
     mThemedReactContext = themedReactContext;
     themedReactContext.addLifecycleEventListener(this);
 
@@ -95,13 +95,8 @@ public class RNCameraView extends CameraView implements LifecycleEventListener, 
             promise.resolve(null);
         }
         final File cacheDirectory = mPictureTakenDirectories.remove(promise);
-        if(Build.VERSION.SDK_INT >= 11/*HONEYCOMB*/) {
           new ResolveTakenPictureAsyncTask(data, promise, options, cacheDirectory, RNCameraView.this)
                   .executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-        } else {
-          new ResolveTakenPictureAsyncTask(data, promise, options, cacheDirectory, RNCameraView.this)
-                  .execute();
-        }
         RNCameraViewHelper.emitPictureTakenEvent(cameraView);
       }
 
