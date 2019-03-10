@@ -626,8 +626,7 @@ class Camera2 extends CameraViewImpl implements MediaRecorder.OnInfoListener, Me
                 CameraCharacteristics characteristics = mCameraManager.getCameraCharacteristics(id);
                 Integer level = characteristics.get(
                         CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL);
-                if (level == null ||
-                        level == CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL_LEGACY) {
+                if (level == null) {
                     continue;
                 }
                 Integer internal = characteristics.get(CameraCharacteristics.LENS_FACING);
@@ -645,8 +644,7 @@ class Camera2 extends CameraViewImpl implements MediaRecorder.OnInfoListener, Me
             mCameraCharacteristics = mCameraManager.getCameraCharacteristics(mCameraId);
             Integer level = mCameraCharacteristics.get(
                     CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL);
-            if (level == null ||
-                    level == CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL_LEGACY) {
+            if (level == null) {
                 return false;
             }
             Integer internal = mCameraCharacteristics.get(CameraCharacteristics.LENS_FACING);
@@ -912,7 +910,8 @@ class Camera2 extends CameraViewImpl implements MediaRecorder.OnInfoListener, Me
         }
         Float minimumLens = mCameraCharacteristics.get(CameraCharacteristics.LENS_INFO_MINIMUM_FOCUS_DISTANCE);
         if (minimumLens == null) {
-          throw new NullPointerException("Unexpected state: LENS_INFO_MINIMUM_FOCUS_DISTANCE null");
+          // lens does not support focusing
+          return;
         }
         float value = mFocusDepth * minimumLens;
         mPreviewRequestBuilder.set(CaptureRequest.LENS_FOCUS_DISTANCE, value);
@@ -1079,7 +1078,8 @@ class Camera2 extends CameraViewImpl implements MediaRecorder.OnInfoListener, Me
         if (CamcorderProfile.hasProfile(Integer.parseInt(mCameraId), profile.quality)) {
             setCamcorderProfile(profile, recordAudio);
         } else {
-            setCamcorderProfile(CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH), recordAudio);
+            // the camera does not support the specified camcorder profile - fall back to the best supported
+            setCamcorderProfile(CamcorderProfile.get(Integer.parseInt(mCameraId), CamcorderProfile.QUALITY_HIGH), recordAudio);
         }
 
         mMediaRecorder.setOrientationHint(getOutputRotation());
